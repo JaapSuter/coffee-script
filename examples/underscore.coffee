@@ -392,7 +392,7 @@ _.memoize = (func, hasher) ->
 
 # Defers a function, scheduling it to run after the current call stack has
 # cleared.
-_.defer = (func) ->
+_.soon = (func) ->
   _.delay.apply _, [func, 1].concat _.rest arguments
 
 
