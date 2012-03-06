@@ -33,24 +33,25 @@ BANNER = '''
 
 # The list of all the valid option flags that `coffee` knows how to handle.
 SWITCHES = [
-  ['-b', '--bare',            'compile without a top-level function wrapper']
-  ['-c', '--compile',         'compile to JavaScript and save as .js files']
-  ['-e', '--eval',            'pass a string from the command line as input']
-  ['-h', '--help',            'display this help message']
-  ['-i', '--interactive',     'run an interactive CoffeeScript REPL']
-  ['-j', '--join [FILE]',     'concatenate the source CoffeeScript before compiling']
-  ['-l', '--lint',            'pipe the compiled JavaScript through JavaScript Lint']
-  ['-n', '--nodes',           'print out the parse tree that the parser produces']
-  [      '--nodejs [ARGS]',   'pass options directly to the "node" binary']
-  ['-o', '--output [DIR]',    'set the output directory for compiled JavaScript']
-  ['-p', '--print',           'print out the compiled JavaScript']
-  ['-r', '--require [FILE*]', 'require a library before executing your script']
-  ['-s', '--stdio',           'listen for and compile scripts over stdio']
-  ['-t', '--tokens',          'print out the tokens that the lexer/rewriter produce']
-  ['-v', '--version',         'display the version number']
-  ['-w', '--watch',           'watch scripts for changes and rerun commands']
-  ['-I', '--runtime [WHICH]', "how to include the iced runtime, one of #{runtime_modes_str}; default is 'node'" ]
-  ['-F', '--runforce',        'output an Iced runtime even if not needed' ]
+  ['-b', '--bare',              'compile without a top-level function wrapper']
+  ['-m', '--modularize [ROOT]', 'compile such that top-level function wrappers become directory-tree mirrored modules']
+  ['-c', '--compile',           'compile to JavaScript and save as .js files']
+  ['-e', '--eval',              'pass a string from the command line as input']
+  ['-h', '--help',              'display this help message']
+  ['-i', '--interactive',       'run an interactive CoffeeScript REPL']
+  ['-j', '--join [FILE]',       'concatenate the source CoffeeScript before compiling']
+  ['-l', '--lint',              'pipe the compiled JavaScript through JavaScript Lint']
+  ['-n', '--nodes',             'print out the parse tree that the parser produces']
+  [      '--nodejs [ARGS]',     'pass options directly to the "node" binary']
+  ['-o', '--output [DIR]',      'set the output directory for compiled JavaScript']
+  ['-p', '--print',             'print out the compiled JavaScript']
+  ['-r', '--require [FILE*]',   'require a library before executing your script']
+  ['-s', '--stdio',             'listen for and compile scripts over stdio']
+  ['-t', '--tokens',            'print out the tokens that the lexer/rewriter produce']
+  ['-v', '--version',           'display the version number']
+  ['-w', '--watch',             'watch scripts for changes and rerun commands']
+  ['-I', '--runtime [WHICH]',   "how to include the iced runtime, one of #{runtime_modes_str}; default is 'node'" ]
+  ['-F', '--runforce',          'output an Iced runtime even if not needed' ]
 ]
 
 # Top-level objects shared by all the functions.
@@ -66,6 +67,7 @@ optionParser = null
 # `--` will be passed verbatim to your script as arguments in `process.argv`
 exports.run = ->
   parseOptions()
+  
   return forkNode()                      if opts.nodejs
   return usage()                         if opts.help
   return version()                       if opts.version
@@ -327,7 +329,7 @@ parseOptions = ->
 
 # The compile-time options to pass to the CoffeeScript compiler.
 compileOptions = (filename) ->
-  {filename, bare: opts.bare, header: opts.compile, runtime: opts.runtime, runforce : opts.runforce }
+  {filename, bare: opts.bare, modularize: opts.modularize, header: opts.compile, runtime: opts.runtime, runforce : opts.runforce }
 
 # Start up a new Node.js instance with the arguments in `--nodejs` passed to
 # the `node` binary, preserving the other options.

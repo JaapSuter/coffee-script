@@ -7,6 +7,8 @@
 {Scope} = require './scope'
 {RESERVED, STRICT_PROSCRIBED} = require './lexer'
 iced = require './iced'
+path = require 'path'
+CoffeeScript = require './coffee-script'
 
 # Import the helpers we plan to use.
 {compact, flatten, extend, merge, del, starts, ends, last} = require './helpers'
@@ -535,8 +537,46 @@ exports.Block = class Block extends Base
       prelude = "#{@compileNode merge(o, indent: '')}\n" if preludeExps.length
       @expressions = rest
     code = @compileWithDeclarations o
-    return code if o.bare
+    if o.bare
+      return code
+    if o.modularize
+      exports = @getModuleContext(o.modularize, o.filename)
+      return """#{prelude}
+                (function(global, exports) {
+                  "use strict";    
+                  #{code}
+                }).call(undefined, window, #{exports});\n"""
     "#{prelude}(function() {\n#{code}\n}).call(this);\n"
+
+  getModuleContext: (root, file) ->
+    root = path.normalize(root).replace(/\\/g, '/')
+    dir = path.normalize(path.dirname file).replace(/\\/g, '/').replace(root, '')
+    file = path.basename file, path.extname file
+    parts = dir.split('/')
+    parts.push file unless '_' is file[0]
+    ns = (part for part in parts when part.length)
+
+    recur = (ns, parent = 'window') ->
+      
+      if ns.length
+        current = parent + '.' + ns[0]
+        """
+          # comment to force indent underneath
+            #{current} ?= {}              
+            #{recur ns[1...ns.length], current}
+        """
+      else
+        parent
+
+    ttt = recur ns
+    ctx = """
+          do ->
+            #{ttt}
+          """
+    ctx = CoffeeScript.compile ctx, bare: true
+    ctx = ctx.trim()
+    ctx = ctx.replace /(\r\n|\n|\r)\s*$/gm, ' '
+    ctx = ctx.replace /;$/, ''
 
   # Compile the expressions body for the contents of a function, with
   # declarations of all inner variables pushed up to the top.
@@ -2457,7 +2497,7 @@ class IcedRuntime extends Block
     window_val = null
 
     inc = null
-    inc = switch (v)
+    inc = switch (v)      
       when "inline", "window"
         window_mode = true if v is "window"
         if window_mode

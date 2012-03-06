@@ -5,6 +5,7 @@ parser.output
 test/fixtures/underscore
 test/*.js
 examples/beautiful_code/parse.coffee
+lib/coffee-script/parser.js.last_known_good
 *.gem
 /node_modules
 *~
